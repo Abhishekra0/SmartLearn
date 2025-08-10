@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartLearn</title>
+<style>
+/* Same styling from your original code */
+body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #D1F6FF; text-align: center; }
+.header { background: #7325C1; padding: 20px; color: #D1F6FF; font-size: 1.8rem; font-weight: bold; text-align: left; padding-left: 20px; }
+.hero { background: #7A32D1; padding: 50px 20px; color: white; text-align: center; }
+.hero h1 { font-size: 2.5rem; margin: 0; }
+.hero p { font-size: 1.2rem; }
+.chatbot-btn { position: fixed; bottom: 20px; right: 20px; background: #7325C1; color: #D1F6FF; padding: 15px 20px; border: none; border-radius: 50px; font-size: 1rem; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 8px rgba(0,0,0,0.2); z-index: 1001; }
+.chatbot-btn:hover { background: #5A18A5; }
+.chatbot-container { display: none; position: fixed; bottom: 90px; right: 20px; width: 350px; height: 450px; background: #D1F6FF; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); overflow: hidden; flex-direction: column; z-index: 1000;}
+.chatbot-header { background: #7325C1; color: #D1F6FF; padding: 10px; font-size: 1.2rem; text-align: left; }
+.chatbot-messages { flex: 1; padding: 10px; overflow-y: auto; text-align: left; color: #333; }
+.chatbot-input { display: flex; padding: 10px; border-top: 1px solid #ddd; background-color: #eee; }
+.chatbot-input input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px; color: #333; background-color: #D1F6FF; }
+.chatbot-input button { margin-left: 5px; padding: 10px 15px; border: none; background: #7325C1; color: #D1F6FF; cursor: pointer; border-radius: 5px; }
+.subjects { display: flex; justify-content: center; gap: 20px; padding: 30px; flex-wrap: wrap; }
+.subject-container { position: relative; }
+.subject { background: #D1F6FF; padding: 20px 40px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); font-size: 1.5rem; font-weight: bold; cursor: pointer; transition: 0.3s; position: relative; color: #333; }
+.subject:hover { transform: scale(1.05); background-color: #E0F9FF; }
+.chapter-list { display: none; position: absolute; top: 100%; left: 0; width: 280px; background: #D1F6FF; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: left; padding: 10px; max-height: 400px; overflow-y: auto; z-index: 10; }
+.chapter-list a { display: block; padding: 8px; text-decoration: none; color: #7325C1; font-size: 1rem; }
+.chapter-list a:hover { background: #c1eaf2; }
+.quiz-section { position: fixed; bottom: 20px; left: 20px; background: #7325C1; color: #D1F6FF; padding: 15px 20px; border: none; border-radius: 50px; font-size: 1rem; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+.quiz-section:hover { background: #5A18A5; }
+.quiz-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 60%; max-width: 600px; max-height: 80vh; background: #D1F6FF; box-shadow: 0px 4px 8px rgba(0,0,0,0.2); border-radius: 10px; padding: 20px; z-index: 1002; display: none; flex-direction: column; color: #333; }
+.quiz-modal h2 { margin-top: 0; font-size: 1.5rem; text-align: center; color: #7325C1; }
+.quiz-modal .quiz-content { overflow-y: auto; padding: 10px; text-align: left; flex-grow: 1; }
+.quiz-modal .quiz-controls { text-align: center; padding-top: 15px; }
+.quiz-modal .close-btn { display: inline-block; margin: 5px; padding: 10px 20px; background: #7325C1; color: #D1F6FF; border: none; cursor: pointer; border-radius: 5px; }
+.quiz-modal .close-btn:hover { background: #5A18A5; }
+#quizResult { text-align: center; font-size: 1.2rem; font-weight: bold; margin: 15px; color: #7325C1; }
+</style>
+</head>
+<body>
+
+<div class="header">SmartLearn</div>
+
+<button class="chatbot-btn" onclick="toggleChatbot()">🤖 SmartBot</button>
+<button class="quiz-section" onclick="generateQuiz()">📝 Take Quiz</button>
+
+<!-- Chatbot -->
+<div class="chatbot-container" id="chatbot">
+<div class="chatbot-header">🤖 SmartBot is here to help!</div>
+<div class="chatbot-messages" id="chat-messages"></div>
+<div class="chatbot-input">
+<input type="text" id="chat-input" placeholder="Ask a question..." onkeyup="if(event.keyCode===13) sendMessage()">
+<button onclick="sendMessage()">Send</button>
+</div>
+</div>
+
+<!-- Hero -->
+<div class="hero">
+<h1>Learn Science and Maths with SmartBot</h1>
+<p>Interactive quizzes, notes, and an AI assistant for doubt-solving</p>
+</div>
+
+<!-- Subjects with updated One-Shot Links -->
+<div class="subjects">
+
+<!-- Physics Updated -->
+<div class="subject-container" onclick="toggleChapters('physics')">
+    <div class="subject">Physics</div>
+    <div class="chapter-list" id="physics">
+        <a href="https://www.youtube.com/watch?v=bin4OCO-LSc" target="_blank">Units and Measurements 💡</a>
+        <a href="https://www.youtube.com/watch?v=vsftPkw8idc" target="_blank">Vectors 💡</a>
+        <a href="https://www.youtube.com/watch?v=lu2E6W805hA" target="_blank">Motion in a Straight Line 💡</a>
+        <a href="https://www.youtube.com/watch?v=JYdznU0Zps0" target="_blank">Motion in a Plane 💡</a>
+        <a href="https://www.youtube.com/watch?v=mEnnQvbEVZk" target="_blank">Laws of Motion 💡</a>
+        <a href="https://www.youtube.com/watch?v=HzXcgVgFBXE" target="_blank">Work, Energy, and Power 💡</a>
+        <a href="https://www.youtube.com/watch?v=A3ctLcAF52A" target="_blank">Rotational Motion 💡</a>
+        <a href="https://www.youtube.com/watch?v=tht94Y4VX4o" target="_blank">Gravitation 💡</a>
+        <a href="https://www.youtube.com/watch?v=cD9e2W7ms1M" target="_blank">Mechanical Properties of Solids 💡</a>
+        <a href="https://www.youtube.com/watch?v=TXBCft_9nkM" target="_blank">Mechanical Properties of Fluids 💡</a>
+        <a href="https://www.youtube.com/watch?v=JuLyWK4aEkA" target="_blank">Thermal Properties of Matter 💡</a>
+        <a href="https://www.youtube.com/watch?v=2DlxqsY7x4I" target="_blank">Thermodynamics 💡</a>
+        <a href="https://www.youtube.com/watch?v=GuAoWRh3KiI" target="_blank">Kinetic Theory of Gases 💡</a>
+        <a href="https://www.youtube.com/watch?v=fcj1fakUdvY" target="_blank">Oscillations 💡</a>
+        <a href="https://www.youtube.com/watch?v=QOYEiy1AUTI" target="_blank">Waves 💡</a>
+        <a href="https://www.youtube.com/watch?v=AP966C5wwwc" target="_blank">Electric Charges and Fields 💡</a>
+        <a href="https://www.youtube.com/watch?v=7Wh42oHg0JY" target="_blank">Current Electricity 💡</a>
+        <a href="https://www.youtube.com/watch?v=eAgrpM1LIZ8" target="_blank">Magnetic Effects of Current 💡</a>
+        <a href="https://www.youtube.com/watch?v=N5nrSirQVws" target="_blank">Electromagnetic Induction 💡</a>
+        <a href="https://www.youtube.com/watch?v=X7p1oVJ3NgM" target="_blank">Alternating Current 💡</a>
+        <a href="https://www.youtube.com/watch?v=P3NDsWVUpOM" target="_blank">Ray Optics 💡</a>
+        <a href="https://www.youtube.com/watch?v=k8IyQgwDdUk" target="_blank">Wave Optics 💡</a>
+        <a href="https://www.youtube.com/watch?v=bonksNfgPxI" target="_blank">Semiconductor Electronics 💡</a>
+    </div>
+</div>
+
+<div class="subject-container" onclick="toggleChapters('chemistry')">
+    <div class="subject">Chemistry</div>
+    <div class="chapter-list" id="chemistry">
+        <a href="https://www.youtube.com/watch?v=MfadB5RYDWY" target="_blank">Mole Concept 🧪</a>
+        <a href="https://www.youtube.com/watch?v=6XYu1WKwkOE" target="_blank">Atomic Structure 🧪</a>
+        <a href="https://www.youtube.com/watch?v=x_fGoOgNHBk" target="_blank">Periodic Table 🧪</a>
+        <a href="https://www.youtube.com/watch?v=qle-q0CxtJk" target="_blank">Chemical Bonding 🧪</a>
+        <a href="https://www.youtube.com/watch?v=26kC7OdQtEU" target="_blank">States of Matter 🧪</a>
+        <a href="https://www.youtube.com/watch?v=pybOLaaEu_U" target="_blank">Thermodynamics 🧪</a>
+        <a href="https://www.youtube.com/watch?v=RL_I2dk1SI8" target="_blank">Equilibrium 🧪</a>
+        <a href="https://www.youtube.com/watch?v=jDWvrYcHFhg" target="_blank">Redox Reactions 🧪</a>
+        <a href="https://www.youtube.com/watch?v=Niv90qO5Ql8" target="_blank">s-Block Elements 🧪</a>
+        <a href="https://www.youtube.com/watch?v=qzFtiCIf9Ck" target="_blank">p-Block Elements 🧪</a>
+        <a href="https://www.youtube.com/watch?v=ld1sHXxeask" target="_blank">Organic Chemistry: Basic Principles 🧪</a>
+        <a href="https://www.youtube.com/watch?v=m18cVrTgfGc" target="_blank">Hydrocarbons 🧪</a>
+        <a href="https://www.youtube.com/watch?v=a81B2EupaJM" target="_blank">Solid State 🧪</a>
+        <a href="https://www.youtube.com/watch?v=wLE1BT_wDo4" target="_blank">Solutions 🧪</a>
+        <a href="https://www.youtube.com/watch?v=etdTd4zscso" target="_blank">Electrochemistry 🧪</a>
+        <a href="https://www.youtube.com/watch?v=57TjjhMZd4s" target="_blank">Chemical Kinetics 🧪</a>
+        <a href="https://www.youtube.com/watch?v=0u8U62K7UPQ" target="_blank">Surface Chemistry 🧪</a>
+        <a href="https://www.youtube.com/watch?v=iHfWGaYhFp4" target="_blank">d & f Block Elements 🧪</a>
+        <a href="https://www.youtube.com/watch?v=O5vUnuPZIQg" target="_blank">Coordination Compounds 🧪</a>
+        <a href="https://www.youtube.com/watch?v=70Hf3mx6XUA" target="_blank">Haloalkanes and Haloarenes 🧪</a>
+        <a href="https://www.youtube.com/watch?v=71fOiCXp9wM" target="_blank">Alcohols, Phenols and Ethers 🧪</a>
+        <a href="https://www.youtube.com/watch?v=67KohaF2PNg" target="_blank">Aldehydes, Ketones & Carboxylic Acids 🧪</a>
+        <a href="https://www.youtube.com/watch?v=S0bcJDrZB64" target="_blank">Amines 🧪</a>
+        <a href="https://www.youtube.com/watch?v=8C5_yp6L24o" target="_blank">Biomolecules 🧪</a>
+    </div>
+</div>
+
+<div class="subject-container" onclick="toggleChapters('biology')">
+    <div class="subject">Biology</div>
+    <div class="chapter-list" id="biology">
+        <a href="https://www.youtube.com/watch?v=AAih1XvW33g" target="_blank">The Living World 🌱</a>
+        <a href="https://www.youtube.com/watch?v=soS6dnpNSIg" target="_blank">Biological Classification 🌱</a>
+        <a href="https://www.youtube.com/watch?v=w9vtTdBL-Fs" target="_blank">Plant Kingdom 🌱</a>
+        <a href="https://www.youtube.com/watch?v=UqAoZkZajpA" target="_blank">Animal Kingdom 🌱</a>
+        <a href="https://www.youtube.com/watch?v=ziHnbZyZtV8" target="_blank">Morphology of Flowering Plants 🌱</a>
+        <a href="https://www.youtube.com/watch?v=awMqKrIhqrU" target="_blank">Anatomy of Flowering Plants 🌱</a>
+        <a href="https://www.youtube.com/watch?v=9NlVo49E_kM" target="_blank">Cell: The Unit of Life 🌱</a>
+        <a href="https://www.youtube.com/watch?v=_G5VFeRe3Po" target="_blank">Biomolecules 🌱</a>
+        <a href="https://www.youtube.com/watch?v=g1qOaeJ8QxU" target="_blank">Cell Cycle and Division 🌱</a>
+        <a href="https://www.youtube.com/watch?v=xAZzDg0lVZk" target="_blank">Transport in Plants 🌱</a>
+        <a href="https://www.youtube.com/watch?v=XofXoKqz9kY" target="_blank">Photosynthesis 🌱</a>
+        <a href="https://www.youtube.com/watch?v=d4OHhOfmSDM" target="_blank">Respiration in Plants 🌱</a>
+        <a href="https://www.youtube.com/watch?v=PdiYlImSLDs" target="_blank">Plant Growth & Development 🌱</a>
+        <a href="https://www.youtube.com/watch?v=-H3DN4bmNus" target="_blank">Digestion & Absorption 🌱</a>
+        <a href="https://www.youtube.com/watch?v=01JfYBw4zTQ" target="_blank">Breathing & Exchange of Gases 🌱</a>
+        <a href="https://www.youtube.com/watch?v=uhZjzAmhVI0" target="_blank">Body Fluids & Circulation 🌱</a>
+        <a href="https://www.youtube.com/watch?v=HL7nUk_r1sk" target="_blank">Excretory Products & Elimination 🌱</a>
+        <a href="https://www.youtube.com/watch?v=-bO5lYhjU9Q" target="_blank">Locomotion & Movement 🌱</a>
+        <a href="https://www.youtube.com/watch?v=iogHodlWq-I" target="_blank">Neural Control & Coordination 🌱</a>
+        <a href="https://www.youtube.com/watch?v=VqKd7fYvdfY" target="_blank">Human Reproduction 🌱</a>
+        <a href="https://www.youtube.com/watch?v=7rYPM_fPGr0" target="_blank">Reproductive Health 🌱</a>
+        <a href="https://www.youtube.com/watch?v=R0TNsZj2pHc" target="_blank">Genetics & Heredity 🌱</a>
+        <a href="https://www.youtube.com/watch?v=fTZXXRlmKkY" target="_blank">Molecular Basis of Inheritance 🌱</a>
+        <a href="https://www.youtube.com/watch?v=c0cCiNXZP3s" target="_blank">Evolution 🌱</a>
+        <a href="https://www.youtube.com/watch?v=YWj2YbJ4W7A" target="_blank">Human Health and Disease 🌱</a>
+        <a href="https://www.youtube.com/watch?v=RtbBq7wM3qU" target="_blank">Biotechnology Principles 🌱</a>
+        <a href="https://www.youtube.com/watch?v=VuiGD4GRNxA" target="_blank">Ecosystems 🌱</a>
+    </div>
+</div>
+
+<div class="subject-container" onclick="toggleChapters('maths')">
+    <div class="subject">Mathematics</div>
+    <div class="chapter-list" id="maths">
+        <a href="https://www.youtube.com/watch?v=F_7WUK7htRg" target="_blank">Sets 📐</a>
+        <a href="https://www.youtube.com/watch?v=7BomsDdbUiQ" target="_blank">Relations and Functions 📐</a>
+        <a href="https://www.youtube.com/watch?v=yir_btwG2aA" target="_blank">Trigonometry 📐</a>
+        <a href="https://www.youtube.com/watch?v=q3S5c7nbTCw" target="_blank">Complex Numbers 📐</a>
+        <a href="https://www.youtube.com/watch?v=l5R4V8v3n3c" target="_blank">Linear Inequalities 📐</a>
+        <a href="https://www.youtube.com/watch?v=G3zkHk56G2I" target="_blank">Permutations and Combinations 📐</a>
+        <a href="https://www.youtube.com/watch?v=HUB4oY4RgcQ" target="_blank">Binomial Theorem 📐</a>
+        <a href="https://www.youtube.com/watch?v=P9liGvVHq3A" target="_blank">Sequences and Series 📐</a>
+        <a href="https://www.youtube.com/watch?v=XdHaSYhR2_Q" target="_blank">Straight Lines 📐</a>
+        <a href="https://www.youtube.com/watch?v=X4MyalK_zYI" target="_blank">Conic Sections 📐</a>
+        <a href="https://www.youtube.com/watch?v=7yBYJ5r9jFI" target="_blank">3D Geometry 📐</a>
+        <a href="https://www.youtube.com/watch?v=CHWhaAlo_ms" target="_blank">Limits and Derivatives 📐</a>
+        <a href="https://www.youtube.com/watch?v=G8QxSvqRkOQ" target="_blank">Statistics 📐</a>
+        <a href="https://www.youtube.com/watch?v=Z2xlvsl5BET" target="_blank">Probability 📐</a>
+        <a href="https://www.youtube.com/watch?v=an_9HdseqnE" target="_blank">Inverse Trigonometric Functions 📐</a>
+        <a href="https://www.youtube.com/watch?v=SG6hC1u5y1w" target="_blank">Matrices 📐</a>
+        <a href="https://www.youtube.com/watch?v=_dGuBNcz4NY" target="_blank">Determinants 📐</a>
+        <a href="https://www.youtube.com/watch?v=Fjb-RxyKj9Q" target="_blank">Continuity and Differentiability 📐</a>
+        <a href="https://www.youtube.com/watch?v=1QkO4nK93gk" target="_blank">Application of Derivatives 📐</a>
+        <a href="https://www.youtube.com/watch?v=xVSom4xUEDI" target="_blank">Integrals 📐</a>
+        <a href="https://www.youtube.com/watch?v=8ZKtot_gBl0" target="_blank">Application of Integrals 📐</a>
+        <a href="https://www.youtube.com/watch?v=foED7f0MRjs" target="_blank">Differential Equations 📐</a>
+        <a href="https://www.youtube.com/watch?v=UwVrv9fSt9M" target="_blank">Vector Algebra 📐</a>
+        <a href="https://www.youtube.com/watch?v=3P3YlCE7MNY" target="_blank">Linear Programming 📐</a>
+    </div>
+</div>
+
+<!-- Quiz Modal -->
+<div class="quiz-modal" id="quizModal">
+    <h2 id="quizTitle">Quiz Questions</h2>
+    <div class="quiz-content" id="quizContent"></div>
+    <div id="quizResult"></div>
+    <div class="quiz-controls">
+        <button id="submitQuizBtn" class="close-btn" style="display: none;" onclick="submitQuiz()">Submit Quiz</button>
+        <button class="close-btn" onclick="closeQuiz()">Close</button>
+    </div>
+</div>
+
+    <script>
+        function toggleChapters(subject) {
+            const allLists = document.querySelectorAll('.chapter-list');
+            allLists.forEach(list => {
+                if (list.id !== subject) {
+                    list.style.display = 'none';
+                }
+            });
+            const chapters = document.getElementById(subject);
+            chapters.style.display = chapters.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function toggleChatbot() {
+            const chatbot = document.getElementById('chatbot');
+            chatbot.style.display = chatbot.style.display === 'none' ? 'flex' : 'none';
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const messages = document.getElementById('chat-messages');
+            if (input.value.trim() === '') return;
+
+            const userMessage = document.createElement('div');
+            userMessage.innerHTML = `<p><strong>You:</strong> ${input.value}</p>`;
+            messages.appendChild(userMessage);
+
+            const apiKey = "AIzaSyBncYaEWluJpjn-MGE5x3F0aIaUhzt8IMM"; // ** REPLACE WITH YOUR API KEY **
+
+            fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ contents: [{ parts: [{ text: "Explain this for a high school student: " + input.value }] }] })
+            })
+            .then(response => response.json())
+            .then(data => {
+                let aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't understand that.";
+                const aiMessage = document.createElement('div');
+                aiMessage.innerHTML = `<p><strong>SmartBot:</strong> ${aiResponse.replace(/\*/g, '').replace(/\n/g, '<br>')}</p>`;
+                messages.appendChild(aiMessage);
+                messages.scrollTop = messages.scrollHeight;
+            })
+            .catch(error => {
+                const errorMessage = document.createElement('div');
+                errorMessage.innerHTML = `<p><strong>SmartBot:</strong> Error fetching response. Please try again.</p>`;
+                messages.appendChild(errorMessage);
+                console.error("Error:", error);
+            });
+
+            input.value = '';
+        }
+
+        let quizAnswers = [];
+
+        function generateQuiz() {
+            const apiKey = "AIzaSyBncYaEWluJpjn-MGE5x3F0aIaUhzt8IMM"; // ** REPLACE WITH YOUR API KEY **
+            const chapter = prompt("Enter the chapter name for the quiz:");
+
+            if (!chapter || chapter.trim() === "") {
+                alert("You must enter a chapter name.");
+                return;
+            }
+
+            const quizContent = document.getElementById("quizContent");
+            const quizResult = document.getElementById("quizResult");
+            const submitBtn = document.getElementById("submitQuizBtn");
+
+            document.getElementById("quizTitle").innerText = `Quiz on ${chapter}`;
+            quizContent.innerHTML = "<p>🧠 Generating your quiz, please wait...</p>";
+            quizResult.innerHTML = "";
+            submitBtn.style.display = "none";
+            document.getElementById("quizModal").style.display = "flex";
+
+            const promptText = `Generate 5 multiple-choice questions for a high school student from the chapter: ${chapter}.
+            Provide the output ONLY as a valid JSON array of objects. Do not add any other text or markdown formatting.
+            Each object must have three keys: "question" (string), "options" (an array of 4 strings), and "answer" (a string containing the correct option's text).`;
+
+            fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: promptText }] }],
+                    generationConfig: { responseMimeType: "application/json" }
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const rawResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                const questions = JSON.parse(rawResponse);
+                quizAnswers = questions.map(q => q.answer);
+
+                quizContent.innerHTML = "";
+
+                questions.forEach((q, index) => {
+                    const questionDiv = document.createElement("div");
+                    questionDiv.className = "question-block";
+                    questionDiv.style.marginBottom = "20px";
+
+                    const questionText = document.createElement("p");
+                    questionText.innerHTML = `<strong>${index + 1}. ${q.question}</strong>`;
+                    questionDiv.appendChild(questionText);
+
+                    q.options.forEach(option => {
+                        const optionLabel = document.createElement("label");
+                        optionLabel.style.display = "block";
+                        optionLabel.style.margin = "5px 0 5px 15px";
+                        optionLabel.innerHTML = `<input type="radio" name="question-${index}" value="${option}"> ${option}`;
+                        questionDiv.appendChild(optionLabel);
+                    });
+                    quizContent.appendChild(questionDiv);
+                });
+
+                submitBtn.style.display = "inline-block";
+            })
+            .catch(error => {
+                quizContent.innerHTML = "<p>Sorry, there was an error generating the quiz. Please try again.</p>";
+                console.error("Error fetching or parsing quiz:", error);
+            });
+        }
+
+        function submitQuiz() {
+            let score = 0;
+            const questionBlocks = document.querySelectorAll('.question-block');
+
+            questionBlocks.forEach((block, index) => {
+                const selectedOption = block.querySelector(`input[name="question-${index}"]:checked`);
+                
+                block.querySelectorAll('label').forEach(label => {
+                    label.style.color = '#333';
+                    label.style.fontWeight = 'normal';
+                });
+
+                if (selectedOption) {
+                    if (selectedOption.value === quizAnswers[index]) {
+                        score++;
+                        selectedOption.parentElement.style.color = '#28a745';
+                        selectedOption.parentElement.style.fontWeight = 'bold';
+                    } else {
+                        selectedOption.parentElement.style.color = '#dc3545';
+                        selectedOption.parentElement.style.fontWeight = 'bold';
+                    }
+                }
+            });
+
+            const quizResult = document.getElementById("quizResult");
+            quizResult.innerHTML = `🎉 Your score: ${score} out of ${quizAnswers.length} 🎉`;
+            document.getElementById("submitQuizBtn").style.display = "none";
+        }
+
+        function closeQuiz() {
+            document.getElementById("quizModal").style.display = "none";
+        }
+    </script>
+</body>
+</html>
